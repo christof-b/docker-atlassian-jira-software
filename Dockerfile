@@ -10,8 +10,9 @@ ENV TZ			  CET-2CEDT-2
 # directory structure.
 RUN set -x \
 	&& echo ${TZ} > /etc/TZ \
-    && apk add --no-cache curl xmlstarlet bash ttf-dejavu libc6-compat \
-    && mkdir -p                "${JIRA_HOME}" \
+	&& apk update \
+    && apk add --no-cache curl xmlstarlet bash ttf-dejavu libc6-compat apr-util apr-dev openssl openssl-dev gcc musl-dev make \
+	&& mkdir -p                "${JIRA_HOME}" \
     && mkdir -p                "${JIRA_HOME}/caches/indexes" \
     && mkdir -p                "${JIRA_INSTALL}/conf/Catalina" \
     && curl -Ls                "https://www.atlassian.com/software/jira/downloads/binary/atlassian-jira-software-${JIRA_VERSION}.tar.gz" | tar -xz --directory "${JIRA_INSTALL}" --strip-components=1 --no-same-owner \
@@ -20,7 +21,11 @@ RUN set -x \
     && curl -Ls                "https://jdbc.postgresql.org/download/postgresql-42.2.1.jar" -o "${JIRA_INSTALL}/lib/postgresql-42.2.1.jar" \
     && sed --in-place          "s/java version/openjdk version/g" "${JIRA_INSTALL}/bin/check-java.sh" \
     && echo -e                 "\njira.home=$JIRA_HOME" >> "${JIRA_INSTALL}/atlassian-jira/WEB-INF/classes/jira-application.properties" \
-    && touch -d "@0"           "${JIRA_INSTALL}/conf/server.xml"
+    && touch -d "@0"           "${JIRA_INSTALL}/conf/server.xml" \
+    && tar -xzvf /opt/atlassian/jira/bin/tomcat-native.tar.gz -C /tmp \
+    && cd /tmp/tomcat-native-1.2.16-src/native && ./configure --with-apr=/usr/bin/apr-1-config --with-java-home=/usr/lib/jvm/java-1.8-openjdk --with-ssl=yes --prefix=/usr && make && make install \
+    && rm -r -f /tmp/tomcat-native-1.2.16-src \
+    && apk del apr-dev openssl-dev gcc musl-dev make
 
 # Use the default unprivileged account. This could be considered bad practice
 # on systems where multiple processes end up being executed by 'daemon' but
