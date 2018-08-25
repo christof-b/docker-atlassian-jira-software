@@ -4,6 +4,7 @@ FROM openjdk:8-alpine
 ENV JIRA_HOME     /var/atlassian/jira
 ENV JIRA_INSTALL  /opt/atlassian/jira
 ENV JIRA_VERSION  7.11.2
+
 ENV TZ			  CET-2CEDT-2
 	
 # Set TimeZone, install Atlassian JIRA and helper tools and setup initial home
@@ -20,9 +21,9 @@ RUN set -x \
     && rm -f                   "${JIRA_INSTALL}/lib/postgresql-9.1-903.jdbc4-atlassian-hosted.jar" \
     && curl -Ls                "https://jdbc.postgresql.org/download/postgresql-42.2.1.jar" -o "${JIRA_INSTALL}/lib/postgresql-42.2.1.jar" \
     && sed --in-place          "s/java version/openjdk version/g" "${JIRA_INSTALL}/bin/check-java.sh" \
-    && echo -e                 "\njira.home=$JIRA_HOME" >> "${JIRA_INSTALL}/atlassian-jira/WEB-INF/classes/jira-application.properties" \
+    && sed --in-place          "s;jira.home =;jira.home = ${JIRA_HOME};g" "${JIRA_INSTALL}/atlassian-jira/WEB-INF/classes/jira-application.properties" \
     && touch -d "@0"           "${JIRA_INSTALL}/conf/server.xml" \
-    && tar -xzvf /opt/atlassian/jira/bin/tomcat-native.tar.gz -C /tmp \
+    && tar -xzvf ${JIRA_INSTALL}/bin/tomcat-native.tar.gz -C /tmp \
     && cd /tmp/tomcat-native-1.2.16-src/native && ./configure --with-apr=/usr/bin/apr-1-config --with-java-home=/usr/lib/jvm/java-1.8-openjdk --with-ssl=yes --prefix=/usr && make && make install \
     && rm -r -f /tmp/tomcat-native-1.2.16-src \
     && apk del apr-dev openssl-dev gcc musl-dev make
@@ -30,8 +31,9 @@ RUN set -x \
 # Use the default unprivileged account. This could be considered bad practice
 # on systems where multiple processes end up being executed by 'daemon' but
 # here we only ever run one process anyway.
-RUN adduser -D -G root -g "ROS User" rosuser \
-    && chmod -R 770           "${JIRA_HOME}" \
+RUN set -x \
+	&& adduser -D -G root -g "ROS User" rosuser \
+    && chmod -R 770	          "${JIRA_HOME}" \
     && chown -R rosuser:root  "${JIRA_HOME}" \
     && chmod -R 770            "${JIRA_INSTALL}/conf" \
     && chmod -R 770            "${JIRA_INSTALL}/logs" \
@@ -49,8 +51,8 @@ EXPOSE 8080
 
 # Set volume mount points for installation and home directory. Changes to the
 # home directory needs to be persisted as well as parts of the installation
-# directory due to eg. logs. Index folder must be mounted seperatly, because of issues with NFS.
-VOLUME ["/var/atlassian/jira", "/var/atlassian/jira/caches/indexes", "/opt/atlassian/jira/logs"]
+# directory due to eg. logs. Index folder should be mounted manually, because of issues with NFS.
+VOLUME ["/var/atlassian/jira", "/opt/atlassian/jira/logs"]
 
 # Set the default working directory as the installation directory.
 WORKDIR /var/atlassian/jira
