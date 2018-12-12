@@ -3,7 +3,7 @@ FROM openjdk:8-alpine
 # Configuration variables.
 ENV JIRA_HOME     /var/atlassian/jira
 ENV JIRA_INSTALL  /opt/atlassian/jira
-ENV JIRA_VERSION  7.11.2
+ENV JIRA_VERSION  7.13.0
 
 ENV TZ			  CET-2CEDT-2
 	
@@ -24,8 +24,8 @@ RUN set -x \
     && sed --in-place          "s;jira.home =;jira.home = ${JIRA_HOME};g" "${JIRA_INSTALL}/atlassian-jira/WEB-INF/classes/jira-application.properties" \
     && touch -d "@0"           "${JIRA_INSTALL}/conf/server.xml" \
     && tar -xzvf ${JIRA_INSTALL}/bin/tomcat-native.tar.gz -C /tmp \
-    && cd /tmp/tomcat-native-1.2.16-src/native && ./configure --with-apr=/usr/bin/apr-1-config --with-java-home=/usr/lib/jvm/java-1.8-openjdk --with-ssl=yes --prefix=/usr && make && make install \
-    && rm -r -f /tmp/tomcat-native-1.2.16-src \
+    && cd /tmp/tomcat-native-1.2.17-src/native && ./configure --with-apr=/usr/bin/apr-1-config --with-java-home=/usr/lib/jvm/java-1.8-openjdk --with-ssl=yes --prefix=/usr && make && make install \
+    && rm -r -f /tmp/tomcat-native-1.2.17-src \
     && apk del apr-dev openssl-dev gcc musl-dev make
 
 # Use the default unprivileged account. This could be considered bad practice
