@@ -12,7 +12,7 @@ ENV TZ			  CET-2CEDT-2
 RUN set -x \
     && echo ${TZ} > /etc/TZ \
     && apk update \
-    && apk add --no-cache curl xmlstarlet bash ttf-dejavu libc6-compat apr-util apr-dev openssl openssl-dev gcc musl-dev make \
+    && apk add --no-cache curl xmlstarlet bash ttf-dejavu libc6-compat apr-util apr-dev openssl openssl-dev gcc musl-dev make clamav-daemon \
     && mkdir -p                "${JIRA_HOME}" \
     && mkdir -p                "${JIRA_HOME}/caches/indexes" \
     && mkdir -p                "${JIRA_INSTALL}/conf/Catalina" \
