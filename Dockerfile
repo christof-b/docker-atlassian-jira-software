@@ -52,10 +52,13 @@ EXPOSE 8080
 # Set volume mount points for installation and home directory. Changes to the
 # home directory needs to be persisted as well as parts of the installation
 # directory due to eg. logs. Index folder should be mounted manually, because of issues with NFS.
-VOLUME ["/var/atlassian/jira", "/opt/atlassian/jira/logs"]
+VOLUME ["/var/atlassian/jira", "/opt/atlassian/jira/logs", "/var/lib/clamav"]
 
 # Set the default working directory as the installation directory.
 WORKDIR /var/atlassian/jira
+
+# Add freshclam config
+COPY "freshclam.conf" "/etc/clamav/"
 
 COPY "docker-entrypoint.sh" "/"
 ENTRYPOINT ["/docker-entrypoint.sh"]
